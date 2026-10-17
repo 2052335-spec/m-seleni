@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M-seleni</title>
+<style>
+:root{
+  --navy:#0b1f33; --ink:#12263a; --muted:#6b7c8d; --line:#e6edf3;
+  --brand:#0ea5a4; --brand-dark:#0b7a8a; --accent:#f5a524;
+  --ok:#12a150; --bad:#d64545; --bg:#f3f7fa; --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--navy);color:var(--ink);display:flex;justify-content:center}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+#app{width:100%;max-width:430px;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column}
+@media(min-width:600px){
+  body{align-items:center;padding:24px 0}
+  #app{min-height:0;height:min(860px,calc(100vh - 48px));border-radius:28px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+}
+.banner{background:var(--accent);color:#3b2600;font-size:12px;font-weight:600;text-align:center;padding:6px 10px}
+
+/* auth */
+.auth{flex:1;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--navy) 0%,#0f4c5c 100%);color:#fff;overflow-y:auto}
+.auth-top{padding:48px 28px 24px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;font-size:30px;font-weight:800;letter-spacing:-.5px}
+.logo .m{width:46px;height:46px;border-radius:14px;background:var(--brand);display:grid;place-items:center;font-size:26px;color:#fff;box-shadow:0 6px 16px rgba(14,165,164,.45)}
+.tag{margin-top:8px;font-size:14px;opacity:.8}
+.auth-card{background:var(--card);color:var(--ink);border-radius:24px 24px 0 0;padding:22px 24px 28px;margin-top:auto;min-height:340px}
+.tabs{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;padding:9px;border-radius:9px;font-weight:600;color:var(--muted)}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+input:focus{border-color:var(--brand)}
+.btn{width:100%;margin-top:18px;padding:13px;border-radius:12px;background:var(--brand);color:#fff;font-weight:700}
+.btn:active{background:var(--brand-dark)}
+.btn.ghost{background:var(--bg);color:var(--ink)}
+.hint{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+.hint b{color:var(--ink)}
+.linkbtn{color:var(--brand-dark);font-weight:600;font-size:12px;text-decoration:underline}
+
+/* app */
+.top{background:linear-gradient(160deg,var(--navy),#0f4c5c);color:#fff;padding:18px 20px 70px}
+.top-row{display:flex;justify-content:space-between;align-items:center}
+.hi{font-size:13px;opacity:.8}
+.name{font-size:18px;font-weight:700}
+.logout{font-size:12px;padding:7px 12px;border-radius:20px;background:rgba(255,255,255,.14);color:#fff}
+.main{flex:1;overflow-y:auto;padding:0 16px 90px;margin-top:-52px}
+.bal{background:var(--card);border-radius:20px;padding:18px 20px;box-shadow:0 8px 24px rgba(11,31,51,.14)}
+.bal small{color:var(--muted);font-size:12px;font-weight:600}
+.bal .amt{font-size:34px;font-weight:800;letter-spacing:-1px;margin:4px 0 2px;display:flex;align-items:center;gap:10px}
+.eye{font-size:16px;opacity:.6}
+.acct{font-size:12px;color:var(--muted)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.act{background:var(--card);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:14px;box-shadow:0 2px 8px rgba(11,31,51,.06)}
+.act .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:#e3f6f6}
+.act.send .ic{background:#fff1d6}
+h3{font-size:15px;margin:6px 2px 10px;display:flex;justify-content:space-between;align-items:center}
+.list{background:var(--card);border-radius:16px;padding:4px 14px;box-shadow:0 2px 8px rgba(11,31,51,.06)}
+.tx{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:0}
+.tx .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex:none}
+.ic.in{background:#e1f5ea}.ic.out{background:#fde7e7}.ic.top{background:#e3f6f6}
+.tx .t{flex:1;min-width:0}
+.tx .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .t span{font-size:12px;color:var(--muted)}
+.tx .a{font-weight:700;font-size:14px;white-space:nowrap}
+.a.pos{color:var(--ok)}.a.neg{color:var(--bad)}
+.empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:13px}
+.panel{background:var(--card);border-radius:18px;padding:6px 18px 20px;box-shadow:0 2px 8px rgba(11,31,51,.06);margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{padding:7px 12px;border-radius:20px;background:var(--bg);font-size:13px;font-weight:600;border:1.5px solid var(--line)}
+.chip:active{border-color:var(--brand)}
+.title{font-size:20px;font-weight:800;margin:6px 2px 8px}
+.nav{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 8px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted);padding:6px}
+.nav button .e{font-size:20px}
+.nav button.on{color:var(--brand-dark)}
+
+/* modal + toast */
+.overlay{position:absolute;inset:0;background:rgba(11,31,51,.55);display:flex;align-items:flex-end;z-index:10}
+.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:22px 22px 28px;max-height:92%;overflow-y:auto}
+.sheet h2{font-size:18px;margin-bottom:4px}
+.sheet p.s{font-size:13px;color:var(--muted)}
+.receipt{text-align:center}
+.check{width:64px;height:64px;border-radius:50%;background:#e1f5ea;color:var(--ok);display:grid;place-items:center;font-size:32px;margin:6px auto 10px}
+.receipt .big{font-size:30px;font-weight:800;margin:6px 0}
+.rows{margin-top:14px;text-align:left;border-top:1px dashed var(--line)}
+.rows div{display:flex;justify-content:space-between;padding:9px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+.rows span{color:var(--muted)}
+.toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;z-index:20;max-width:88%;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.toast.err{background:var(--bad)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- helpers ---------- */
+  var KEY = "mseleni_demo_v1";
+  var SESSION_KEY = "mseleni_demo_session";
+  var MAX_AMOUNT = 50000;
+
+  function $(s) { return document.querySelector(s); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function peso(n) {
+    return "\u20B1" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function round2(n) { return Math.round(n * 100) / 100; }
+  function newRef() { return "MS" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 36).toString(36).toUpperCase(); }
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  /* ---------- fake database (browser only) ---------- */
+  function seed() {
+    return {
+      users: {
+        demo:  { name: "Demo User",    pin: "1234", balance: 1000, tx: [] },
+        maria: { name: "Maria Santos", pin: "1111", balance: 500,  tx: [] },
+        juan:  { name: "Juan Dela Cruz", pin: "2222", balance: 750, tx: [] }
+      }
+    };
+  }
+  function setDB(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  function getDB() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    var d = seed();
+    setDB(d);
+    return d;
+  }
+  var DB = getDB();
+
+  /* ---------- state ---------- */
+  var me = null;
+  try { me = sessionStorage.getItem(SESSION_KEY); } catch (e) {}
+  var tab = "home";
+  var authMode = "login";
+  var hideBal = false;
+  var modal = null;       // {type:'topup'} | {type:'receipt', tx:{...}}
+  var toastTimer = null;
+
+  function toast(msg, isErr) {
+    var old = $(".toast");
+    if (old) old.remove();
+    var el = document.createElement("div");
+    el.className = "toast" + (isErr ? " err" : "");
+    el.textContent = msg;
+    $("#app").appendChild(el);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.remove(); }, 2600);
+  }
+
+  /* ---------- views ---------- */
+  function renderAuth() {
+    var isReg = authMode === "register";
+    $("#app").innerHTML =
+      '<div class="banner">DEMO ONLY &mdash; fake money, no real payments</div>' +
+      '<div class="auth">' +
+        '<div class="auth-top"><div class="logo"><span class="m">M</span><span>-seleni</span></div>' +
+        '<div class="tag">Your pocket e-wallet</div></div>' +
+        '<div class="auth-card">' +
+          '<div class="tabs">' +
+            '<button data-auth="login" class="' + (!isReg ? "on" : "") + '">Log in</button>' +
+            '<button data-auth="register" class="' + (isReg ? "on" : "") + '">Register</button>' +
+          '</div>' +
+          '<form id="' + (isReg ? "f-register" : "f-login") + '" autocomplete="off">' +
+            (isReg ? '<label>Full name</label><input name="name" maxlength="30" required placeholder="e.g. Ana Reyes">' : "") +
+            '<label>Username</label><input name="user" maxlength="16" required placeholder="letters, numbers, underscore" autocapitalize="none">' +
+            '<label>4-digit PIN</label><input name="pin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required placeholder="&bull;&bull;&bull;&bull;">' +
+            '<button class="btn" type="submit">' + (isReg ? "Create account (\u20B1500 free)" : "Log in") + '</button>' +
+          '</form>' +
+          '<div class="hint">Try <b>demo</b> / PIN <b>1234</b>, or <b>maria</b> / <b>1111</b><br>' +
+          '<button class="linkbtn" data-action="reset">Reset demo data</button></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function txRow(t) {
+    var other = DB.users[t.other] ? DB.users[t.other].name : t.other;
+    var icon, cls, title, sign;
+    if (t.type === "topup") { icon = "\u2B07"; cls = "top"; title = "Cash in"; sign = "+"; }
+    else if (t.type === "received") { icon = "\u2199"; cls = "in"; title = "From " + other; sign = "+"; }
+    else { icon = "\u2197"; cls = "out"; title = "To " + other; sign = "-"; }
+    var sub = fmtDate(t.ts) + (t.note ? " \u00B7 " + t.note : "");
+    return '<div class="tx"><div class="ic ' + cls + '">' + icon + '</div>' +
+      '<div class="t"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></div>' +
+      '<div class="a ' + (sign === "+" ? "pos" : "neg") + '">' + sign + peso(t.amount) + '</div></div>';
+  }
+
+  function txList(arr) {
+    if (!arr.length) return '<div class="list"><div class="empty">No transactions yet.</div></div>';
+    return '<div class="list">' + arr.map(txRow).join("") + '</div>';
+  }
+
+  function homeView(u) {
+    return '' +
+      '<div class="bal"><small>Available balance</small>' +
+        '<div class="amt"><span>' + (hideBal ? "\u20B1 \u2022\u2022\u2022\u2022\u2022\u2022" : peso(u.balance)) + '</span>' +
+        '<button class="eye" data-action="toggle-bal" aria-label="Show or hide balance">' + (hideBal ? "\uD83D\uDE48" : "\uD83D\uDC41") + '</button></div>' +
+        '<div class="acct">@' + esc(me) + ' &middot; M-seleni account</div></div>' +
+      '<div class="actions">' +
+        '<button class="act" data-action="open-topup"><span class="ic">\uD83D\uDCB5</span>Top up</button>' +
+        '<button class="act send" data-tab="send"><span class="ic">\u2708\uFE0F</span>Send money</button>' +
+      '</div>' +
+      '<h3>Recent activity <button class="linkbtn" data-tab="activity">See all</button></h3>' +
+      txList(u.tx.slice(0, 4));
+  }
+
+  function sendView() {
+    var others = Object.keys(DB.users).filter(function (k) { return k !== me; });
+    var chips = others.map(function (k) {
+      return '<button type="button" class="chip" data-pick="' + esc(k) + '">@' + esc(k) + '</button>';
+    }).join("");
+    return '' +
+      '<div class="title">Send money</div>' +
+      '<div class="panel"><form id="f-send" autocomplete="off">' +
+        '<label>Send to (username)</label>' +
+        '<input name="to" maxlength="16" required placeholder="e.g. maria" autocapitalize="none">' +
+        '<div class="chips">' + chips + '</div>' +
+        '<label>Amount (\u20B1)</label>' +
+        '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
+        '<label>Note (optional)</label>' +
+        '<input name="note" maxlength="40" placeholder="e.g. lunch">' +
+        '<button class="btn" type="submit">Send</button>' +
+      '</form></div>';
+  }
+
+  function activityView(u) {
+    return '<div class="title">Activity</div>' + txList(u.tx);
+  }
+
+  function modalHTML() {
+    if (!modal) return "";
+    if (modal.type === "topup") {
+      return '<div class="overlay"><div class="sheet">' +
+        '<h2>Top up</h2><p class="s">Add fake cash to your wallet (max ' + peso(MAX_AMOUNT) + ').</p>' +
+        '<form id="f-topup" autocomplete="off">' +
+          '<label>Amount (\u20B1)</label>' +
+          '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
+          '<div class="chips">' +
+            [100, 500, 1000, 5000].map(function (n) { return '<button type="button" class="chip" data-amt="' + n + '">' + peso(n).replace(".00", "") + '</button>'; }).join("") +
+          '</div>' +
+          '<button class="btn" type="submit">Add money</button>' +
+          '<button class="btn ghost" type="button" data-action="close-modal">Cancel</button>' +
+        '</form></div></div>';
+    }
+    if (modal.type === "receipt") {
+      var t = modal.tx;
+      var other = DB.users[t.other] ? DB.users[t.other].name : t.other;
+      return '<div class="overlay"><div class="sheet receipt">' +
+        '<div class="check">\u2713</div><h2>Money sent!</h2>' +
+        '<div class="big">' + peso(t.amount) + '</div>' +
+        '<div class="rows">' +
+          '<div><span>To</span><b>' + esc(other) + ' (@' + esc(t.other) + ')</b></div>' +
+          (t.note ? '<div><span>Note</span><b>' + esc(t.note) + '</b></div>' : "") +
+          '<div><span>Date</span><b>' + esc(fmtDate(t.ts)) + '</b></div>' +
+          '<div><span>Reference no.</span><b>' + esc(t.id) + '</b></div>' +
+        '</div>' +
+        '<button class="btn" data-action="close-modal">Done</button>' +
+      '</div></div>';
+    }
+    return "";
+  }
+
+  function renderApp(u) {
+    var body = tab === "send" ? sendView() : tab === "activity" ? activityView(u) : homeView(u);
+    function nav(id, emoji, label) {
+      return '<button data-tab="' + id + '" class="' + (tab === id ? "on" : "") + '"><span class="e">' + emoji + '</span>' + label + '</button>';
+    }
+    $("#app").innerHTML =
+      '<div class="banner">DEMO ONLY &mdash; fake money, no real payments</div>' +
+      '<div class="top"><div class="top-row"><div><div class="hi">Welcome back,</div><div class="name">' + esc(u.name) + '</div></div>' +
+        '<button class="logout" data-action="logout">Log out</button></div></div>' +
+      '<div class="main">' + body + '</div>' +
+      '<div class="nav">' + nav("home", "\uD83C\uDFE0", "Home") + nav("send", "\u2708\uFE0F", "Send") + nav("activity", "\uD83D\uDCCB", "Activity") + '</div>' +
+      modalHTML();
+  }
+
+  function render() {
+    var u = me && DB.users[me];
+    if (!u) { me = null; renderAuth(); return; }
+    renderApp(u);
+  }
+
+  /* ---------- actions ---------- */
+  function setSession(name) {
+    me = name;
+    try { if (name) sessionStorage.setItem(SESSION_KEY, name); else sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+  }
+
+  function doLogin(f) {
+    var user = f.user.value.trim().toLowerCase();
+    var pin = f.pin.value;
+    var u = DB.users[user];
+    if (!u || u.pin !== pin) { toast("Wrong username or PIN", true); return; }
+    setSession(user); tab = "home"; modal = null; render();
+  }
+
+  function doRegister(f) {
+    var name = f.name.value.trim();
+    var user = f.user.value.trim().toLowerCase();
+    var pin = f.pin.value;
+    if (!/^[a-z0-9_]{3,16}$/.test(user)) { toast("Username: 3-16 letters, numbers or _", true); return; }
+    if (!/^[0-9]{4}$/.test(pin)) { toast("PIN must be 4 digits", true); return; }
+    if (!name) { toast("Please enter your name", true); return; }
+    if (DB.users[user]) { toast("That username is taken", true); return; }
+    DB.users[user] = { name: name, pin: pin, balance: 500, tx: [] };
+    DB.users[user].tx.unshift({ id: newRef(), type: "topup", amount: 500, other: user, note: "Welcome bonus", ts: Date.now() });
+    setDB(DB);
+    setSession(user); tab = "home"; render();
+    toast("Welcome to M-seleni! \u20B1500 added");
+  }
+
+  function doTopup(f) {
+    var amt = round2(parseFloat(f.amount.value));
+    if (!(amt > 0)) { toast("Enter a valid amount", true); return; }
+    if (amt > MAX_AMOUNT) { toast("Max top up is " + peso(MAX_AMOUNT), true); return; }
+    var u = DB.users[me];
+    u.balance = round2(u.balance + amt);
+    u.tx.unshift({ id: newRef(), type: "topup", amount: amt, other: me, note: "", ts: Date.now() });
+    setDB(DB);
+    modal = null; render();
+    toast(peso(amt) + " added to your wallet");
+  }
+
+  function doSend(f) {
+    var to = f.to.value.trim().toLowerCase().replace(/^@/, "");
+    var amt = round2(parseFloat(f.amount.value));
+    var note = f.note.value.trim();
+    var u = DB.users[me];
+    var r = DB.users[to];
+    if (!r) { toast("No user named @" + to, true); return; }
+    if (to === me) { toast("You can't send money to yourself", true); return; }
+    if (!(amt > 0)) { toast("Enter a valid amount", true); return; }
+    if (amt > MAX_AMOUNT) { toast("Max per transfer is " + peso(MAX_AMOUNT), true); return; }
+    if (amt > u.balance) { toast("Not enough balance", true); return; }
+
+    // Both sides are updated together, then saved once (the real back end will use a DB transaction)
+    var ref = newRef(), ts = Date.now();
+    u.balance = round2(u.balance - amt);
+    r.balance = round2(r.balance + amt);
+    var sent = { id: ref, type: "sent", amount: amt, other: to, note: note, ts: ts };
+    u.tx.unshift(sent);
+    r.tx.unshift({ id: ref, type: "received", amount: amt, other: me, note: note, ts: ts });
+    setDB(DB);
+    modal = { type: "receipt", tx: sent };
+    tab = "home";
+    render();
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener("click", function (e) {
+    var t;
+    if (e.target.classList.contains("overlay")) { modal = null; render(); return; }
+    if ((t = e.target.closest("[data-auth]"))) { authMode = t.dataset.auth; render(); return; }
+    if ((t = e.target.closest("[data-tab]"))) { tab = t.dataset.tab; render(); return; }
+    if ((t = e.target.closest("[data-pick]"))) { var to = document.querySelector('#f-send input[name="to"]'); if (to) to.value = t.dataset.pick; return; }
+    if ((t = e.target.closest("[data-amt]"))) { var a = document.querySelector('#f-topup input[name="amount"]'); if (a) a.value = t.dataset.amt; return; }
+    if ((t = e.target.closest("[data-action]"))) {
+      var act = t.dataset.action;
+      if (act === "logout") { setSession(null); modal = null; render(); }
+      else if (act === "toggle-bal") { hideBal = !hideBal; render(); }
+      else if (act === "open-topup") { modal = { type: "topup" }; render(); }
+      else if (act === "close-modal") { modal = null; render(); }
+      else if (act === "reset") {
+        if (confirm("Reset all demo accounts and transactions?")) {
+          DB = seed(); setDB(DB); setSession(null); authMode = "login"; render(); toast("Demo data reset");
+        }
+      }
+    }
+  });
+
+  document.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = e.target;
+    if (f.id === "f-login") doLogin(f);
+    else if (f.id === "f-register") doRegister(f);
+    else if (f.id === "f-topup") doTopup(f);
+    else if (f.id === "f-send") doSend(f);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
