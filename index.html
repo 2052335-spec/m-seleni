@@ -567,14 +567,7 @@ h3{font-size:15px;margin:6px 2px 10px;display:flex;justify-content:space-between
   /* ---------- start ---------- */
   render();
 
-  // Register service worker for PWA
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("./sw.js").catch(function (err) {
-        console.log("SW registration failed:", err);
-      });
-    });
-  }
+  
 })();
 </script>
 </body>
