@@ -2,8 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>M-seleni</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#DC2626">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="M-seleni">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
 <style>
 :root{
   --navy:#0b1f33; --ink:#12263a; --muted:#6b7c8d; --line:#e6edf3;
@@ -236,267 +248,333 @@ h3{font-size:15px;margin:6px 2px 10px;display:flex;justify-content:space-between
         '<div class="acct">@' + esc(me) + ' &middot; M-seleni account</div></div>' +
       '<div class="actions">' +
         '<button class="act" data-action="open-topup"><span class="ic">\uD83D\uDCB5</span>Top up</button>' +
-        '<button class="act send" data-tab="send"><span class="ic">\u2708\uFE0F</span>Send</button>' +
-        '<button class="act bill" data-tab="bills"><span class="ic">\uD83E\uDDFE</span>Pay bills</button>' +
+        '<button class="act send" data-tab="send"><span class="ic">\uD83D\uDCE4</span>Send</button>' +
+        '<button class="act bill" data-tab="bills"><span class="ic">\uD83D\uDCCB</span>Bills</button>' +
       '</div>' +
-      '<h3>Recent activity <button class="linkbtn" data-tab="activity">See all</button></h3>' +
-      txList(u.tx.slice(0, 4));
+      '<h3>Recent activity</h3>' +
+      txList(u.tx.slice(0, 8));
   }
 
   function sendView() {
-    var others = Object.keys(DB.users).filter(function (k) { return k !== me; });
-    var chips = others.map(function (k) {
-      return '<button type="button" class="chip" data-pick="' + esc(k) + '">@' + esc(k) + '</button>';
-    }).join("");
     return '' +
       '<div class="title">Send money</div>' +
-      '<div class="panel"><form id="f-send" autocomplete="off">' +
-        '<label>Send to (username)</label>' +
-        '<input name="to" maxlength="16" required placeholder="e.g. maria" autocapitalize="none">' +
-        '<div class="chips">' + chips + '</div>' +
-        '<label>Amount (\u20B1)</label>' +
-        '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
-        '<label>Note (optional)</label>' +
-        '<input name="note" maxlength="40" placeholder="e.g. lunch">' +
-        '<button class="btn" type="submit">Send</button>' +
-      '</form></div>';
+      '<div class="panel">' +
+        '<form id="f-send">' +
+          '<label>To username</label><input name="to" required placeholder="e.g. maria" autocapitalize="none">' +
+          '<label>Amount</label><input name="amount" type="number" inputmode="decimal" min="1" max="' + MAX_AMOUNT + '" step="0.01" required placeholder="0.00">' +
+          '<label>Note (optional)</label><input name="note" maxlength="40" placeholder="For lunch">' +
+          '<button class="btn" type="submit">Send</button>' +
+        '</form>' +
+      '</div>';
   }
 
-  function billsView(u) {
-    if (biller && BILLERS[biller]) {
+  function billsView() {
+    if (biller) {
       var b = BILLERS[biller];
-      var saved = (u.saved && u.saved[biller]) || "";
-      return '<button class="back" data-biller-back="1">\u2190 Back</button>' +
-        '<div class="title">' + b.icon + ' ' + esc(b.label) + '</div>' +
-        '<div class="panel"><div class="paying">Paying <b>' + esc(b.company) + '</b> &middot; ' + esc(b.note) + '</div>' +
-        '<form id="f-bill" autocomplete="off">' +
-          '<label>' + esc(b.field) + '</label>' +
-          '<input name="account" inputmode="numeric" maxlength="14" required placeholder="' + esc(b.hint) + '" value="' + esc(saved) + '">' +
-          '<label>Amount (\u20B1)</label>' +
-          '<input name="amount" type="number" inputmode="decimal" min="10" step="0.01" required placeholder="0.00">' +
-          '<div class="chips">' +
-            [50, 100, 200, 500].map(function (n) { return '<button type="button" class="chip" data-billamt="' + n + '">' + peso(n).replace(".00", "") + '</button>'; }).join("") +
-          '</div>' +
-          '<button class="btn" type="submit">Pay ' + esc(b.company) + '</button>' +
-        '</form></div>';
+      return '' +
+        '<button class="back" data-action="back-biller">&larr; All billers</button>' +
+        '<div class="title">' + esc(b.label) + '</div>' +
+        '<div class="paying">Paying <b>' + esc(b.company) + '</b> &middot; ' + esc(b.note) + '</div>' +
+        '<div class="panel">' +
+          '<form id="f-bill">' +
+            '<label>' + esc(b.field) + '</label><input name="ref" required placeholder="' + esc(b.hint) + '">' +
+            '<label>Amount</label><input name="amount" type="number" inputmode="decimal" min="1" max="' + MAX_AMOUNT + '" step="0.01" required placeholder="0.00">' +
+            '<button class="btn" type="submit">Pay now</button>' +
+          '</form>' +
+          '<div class="fine">A reference token will appear after payment.</div>' +
+        '</div>';
     }
-    var cards = Object.keys(BILLERS).map(function (k) {
-      var b = BILLERS[k];
-      return '<button class="biller" data-biller="' + k + '"><span class="ic">' + b.icon + '</span>' +
-        '<span class="bt"><b>' + esc(b.label) + '</b><span>' + esc(b.company) + ' &middot; ' + esc(b.note) + '</span></span>' +
-        '<span class="go">\u203A</span></button>';
-    }).join("");
-    var recent = u.tx.filter(function (t) { return t.type === "bill"; }).slice(0, 4);
-    return '<div class="title">Pay bills</div>' + cards + '<h3>Recent bill payments</h3>' + txList(recent);
+    return '' +
+      '<div class="title">Pay bills</div>' +
+      '<button class="biller" data-biller="cashpower"><span class="ic">\uD83D\uDCA1</span><div class="bt"><b>Cashpower</b><span>Solomon Power &middot; Prepaid electricity</span></div><span class="go">&rsaquo;</span></button>' +
+      '<button class="biller" data-biller="cashwater"><span class="ic">\uD83D\uDCA7</span><div class="bt"><b>Cashwater</b><span>Solomon Water &middot; Water bill</span></div><span class="go">&rsaquo;</span></button>';
   }
 
-  function activityView(u) {
+  function historyView(u) {
     return '<div class="title">Activity</div>' + txList(u.tx);
   }
 
   function modalHTML() {
     if (!modal) return "";
     if (modal.type === "topup") {
-      return '<div class="overlay"><div class="sheet">' +
-        '<h2>Top up</h2><p class="s">Add fake cash to your wallet (max ' + peso(MAX_AMOUNT) + ').</p>' +
-        '<form id="f-topup" autocomplete="off">' +
-          '<label>Amount (\u20B1)</label>' +
-          '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
+      return '<div class="overlay" data-action="close-modal"><div class="sheet" onclick="event.stopPropagation()">' +
+        '<h2>Top up</h2><p class="s">Add fake cash to your wallet</p>' +
+        '<form id="f-topup">' +
+          '<label>Amount</label><input name="amount" type="number" inputmode="decimal" min="1" max="' + MAX_AMOUNT + '" step="0.01" required placeholder="0.00" autofocus>' +
           '<div class="chips">' +
-            [100, 500, 1000, 5000].map(function (n) { return '<button type="button" class="chip" data-amt="' + n + '">' + peso(n).replace(".00", "") + '</button>'; }).join("") +
+            '<button type="button" class="chip" data-chip="100">\u20B1100</button>' +
+            '<button type="button" class="chip" data-chip="500">\u20B1500</button>' +
+            '<button type="button" class="chip" data-chip="1000">\u20B11,000</button>' +
+            '<button type="button" class="chip" data-chip="5000">\u20B15,000</button>' +
           '</div>' +
           '<button class="btn" type="submit">Add money</button>' +
-          '<button class="btn ghost" type="button" data-action="close-modal">Cancel</button>' +
+          '<button class="btn ghost" type="button" data-action="close-modal" style="margin-top:8px">Cancel</button>' +
         '</form></div></div>';
     }
     if (modal.type === "receipt") {
       var t = modal.tx;
-      var other = DB.users[t.other] ? DB.users[t.other].name : t.other;
-      return '<div class="overlay"><div class="sheet receipt">' +
-        '<div class="check">\u2713</div><h2>Money sent!</h2>' +
-        '<div class="big">' + peso(t.amount) + '</div>' +
-        '<div class="rows">' +
-          '<div><span>To</span><b>' + esc(other) + ' (@' + esc(t.other) + ')</b></div>' +
-          (t.note ? '<div><span>Note</span><b>' + esc(t.note) + '</b></div>' : "") +
-          '<div><span>Date</span><b>' + esc(fmtDate(t.ts)) + '</b></div>' +
-          '<div><span>Reference no.</span><b>' + esc(t.id) + '</b></div>' +
-        '</div>' +
-        '<button class="btn" data-action="close-modal">Done</button>' +
-      '</div></div>';
-    }
-    if (modal.type === "bill-receipt") {
-      var bt = modal.tx;
-      var bb = BILLERS[bt.other] || { label: bt.other, company: bt.other, field: "Account" };
-      return '<div class="overlay"><div class="sheet receipt">' +
-        '<div class="check">\u2713</div><h2>Bill paid!</h2>' +
-        '<div class="big">' + peso(bt.amount) + '</div>' +
-        '<div class="rows">' +
-          '<div><span>Biller</span><b>' + esc(bb.company) + '</b></div>' +
-          '<div><span>Service</span><b>' + esc(bb.label) + '</b></div>' +
-          '<div><span>' + esc(bb.field) + '</span><b>' + esc(bt.account) + '</b></div>' +
-          '<div><span>Date</span><b>' + esc(fmtDate(bt.ts)) + '</b></div>' +
-          '<div><span>Reference no.</span><b>' + esc(bt.id) + '</b></div>' +
-          (bt.token ? '<div><span>Demo token</span><b class="token">' + esc(bt.token) + '</b></div>' : "") +
-        '</div>' +
-        (bt.token ? '<p class="fine">Demo token only. It does not load any real meter.</p>' : "") +
-        '<button class="btn" data-action="close-modal">Done</button>' +
-      '</div></div>';
+      var rows = "";
+      if (t.type === "topup") rows = '<div><span>Type</span><b>Cash in</b></div><div><span>Reference</span><b class="token">' + esc(t.ref) + '</b></div>';
+      else if (t.type === "send" || t.type === "received") {
+        rows = '<div><span>To / From</span><b>' + esc(t.other) + '</b></div>' +
+               (t.note ? '<div><span>Note</span><b>' + esc(t.note) + '</b></div>' : "") +
+               '<div><span>Reference</span><b class="token">' + esc(t.ref) + '</b></div>';
+      } else if (t.type === "bill") {
+        var bi = BILLERS[t.other] || {};
+        rows = '<div><span>Biller</span><b>' + esc(bi.label || t.other) + '</b></div>' +
+               '<div><span>' + esc(bi.field || "Reference") + '</span><b>' + esc(t.note || "") + '</b></div>' +
+               '<div><span>Token</span><b class="token">' + esc(t.ref) + '</b></div>';
+      }
+      return '<div class="overlay" data-action="close-modal"><div class="sheet receipt" onclick="event.stopPropagation()">' +
+        '<div class="check">\u2713</div>' +
+        '<div class="big">' + (t.type === "topup" || t.type === "received" ? "+" : "-") + peso(t.amount) + '</div>' +
+        '<p class="s">' + fmtDate(t.ts) + '</p>' +
+        '<div class="rows">' + rows + '</div>' +
+        '<button class="btn" data-action="close-modal" style="margin-top:18px">Done</button>' +
+        '</div></div>';
     }
     return "";
   }
 
-  function renderApp(u) {
-    var body = tab === "send" ? sendView() : tab === "bills" ? billsView(u) : tab === "activity" ? activityView(u) : homeView(u);
-    function nav(id, emoji, label) {
-      return '<button data-tab="' + id + '" class="' + (tab === id ? "on" : "") + '"><span class="e">' + emoji + '</span>' + label + '</button>';
+  function render() {
+    if (!me || !DB.users[me]) {
+      me = null;
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+      renderAuth();
+      return;
     }
+    var u = DB.users[me];
+    var body = "";
+    if (tab === "home") body = homeView(u);
+    else if (tab === "send") body = sendView();
+    else if (tab === "bills") body = billsView();
+    else if (tab === "history") body = historyView(u);
+
     $("#app").innerHTML =
       '<div class="banner">DEMO ONLY &mdash; fake money, no real payments</div>' +
-      '<div class="top' + (tab === "home" ? "" : " slim") + '"><div class="top-row"><div><div class="hi">Welcome back,</div><div class="name">' + esc(u.name) + '</div></div>' +
+      '<div class="top' + (tab !== "home" ? " slim" : "") + '">' +
+        '<div class="top-row"><div><div class="hi">Hello</div><div class="name">' + esc(u.name) + '</div></div>' +
         '<button class="logout" data-action="logout">Log out</button></div></div>' +
-      '<div class="main' + (tab === "home" ? "" : " flat") + '">' + body + '</div>' +
-      '<div class="nav">' + nav("home", "\uD83C\uDFE0", "Home") + nav("send", "\u2708\uFE0F", "Send") + nav("bills", "\uD83E\uDDFE", "Bills") + nav("activity", "\uD83D\uDCCB", "Activity") + '</div>' +
+      '<div class="main' + (tab !== "home" ? " flat" : "") + '">' + body + '</div>' +
+      '<div class="nav">' +
+        '<button data-tab="home" class="' + (tab === "home" ? "on" : "") + '"><span class="e">\uD83C\uDFE0</span>Home</button>' +
+        '<button data-tab="send" class="' + (tab === "send" ? "on" : "") + '"><span class="e">\uD83D\uDCE4</span>Send</button>' +
+        '<button data-tab="bills" class="' + (tab === "bills" ? "on" : "") + '"><span class="e">\uD83D\uDCCB</span>Bills</button>' +
+        '<button data-tab="history" class="' + (tab === "history" ? "on" : "") + '"><span class="e">\uD83D\uDCCB</span>Activity</button>' +
+      '</div>' +
       modalHTML();
   }
 
-  function render() {
-    var u = me && DB.users[me];
-    if (!u) { me = null; renderAuth(); return; }
-    renderApp(u);
-  }
-
   /* ---------- actions ---------- */
-  function setSession(name) {
-    me = name;
-    try { if (name) sessionStorage.setItem(SESSION_KEY, name); else sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
-  }
-
-  function doLogin(f) {
-    var user = f.user.value.trim().toLowerCase();
-    var pin = f.pin.value;
-    var u = DB.users[user];
-    if (!u || u.pin !== pin) { toast("Wrong username or PIN", true); return; }
-    setSession(user); tab = "home"; biller = null; modal = null; render();
-  }
-
-  function doRegister(f) {
-    var name = f.name.value.trim();
-    var user = f.user.value.trim().toLowerCase();
-    var pin = f.pin.value;
-    if (!/^[a-z0-9_]{3,16}$/.test(user)) { toast("Username: 3-16 letters, numbers or _", true); return; }
-    if (!/^[0-9]{4}$/.test(pin)) { toast("PIN must be 4 digits", true); return; }
-    if (!name) { toast("Please enter your name", true); return; }
-    if (DB.users[user]) { toast("That username is taken", true); return; }
-    DB.users[user] = { name: name, pin: pin, balance: 500, tx: [] };
-    DB.users[user].tx.unshift({ id: newRef(), type: "topup", amount: 500, other: user, note: "Welcome bonus", ts: Date.now() });
-    setDB(DB);
-    setSession(user); tab = "home"; render();
-    toast("Welcome to M-seleni! \u20B1500 added");
-  }
-
-  function doTopup(f) {
-    var amt = round2(parseFloat(f.amount.value));
-    if (!(amt > 0)) { toast("Enter a valid amount", true); return; }
-    if (amt > MAX_AMOUNT) { toast("Max top up is " + peso(MAX_AMOUNT), true); return; }
-    var u = DB.users[me];
-    u.balance = round2(u.balance + amt);
-    u.tx.unshift({ id: newRef(), type: "topup", amount: amt, other: me, note: "", ts: Date.now() });
-    setDB(DB);
-    modal = null; render();
-    toast(peso(amt) + " added to your wallet");
-  }
-
-  function doSend(f) {
-    var to = f.to.value.trim().toLowerCase().replace(/^@/, "");
-    var amt = round2(parseFloat(f.amount.value));
-    var note = f.note.value.trim();
-    var u = DB.users[me];
-    var r = DB.users[to];
-    if (!r) { toast("No user named @" + to, true); return; }
-    if (to === me) { toast("You can't send money to yourself", true); return; }
-    if (!(amt > 0)) { toast("Enter a valid amount", true); return; }
-    if (amt > MAX_AMOUNT) { toast("Max per transfer is " + peso(MAX_AMOUNT), true); return; }
-    if (amt > u.balance) { toast("Not enough balance", true); return; }
-
-    // Both sides are updated together, then saved once (the real back end will use a DB transaction)
-    var ref = newRef(), ts = Date.now();
-    u.balance = round2(u.balance - amt);
-    r.balance = round2(r.balance + amt);
-    var sent = { id: ref, type: "sent", amount: amt, other: to, note: note, ts: ts };
-    u.tx.unshift(sent);
-    r.tx.unshift({ id: ref, type: "received", amount: amt, other: me, note: note, ts: ts });
-    setDB(DB);
-    modal = { type: "receipt", tx: sent };
+  function doLogin(user, pin) {
+    user = (user || "").trim().toLowerCase();
+    if (!DB.users[user] || DB.users[user].pin !== pin) {
+      toast("Wrong username or PIN", true);
+      return;
+    }
+    me = user;
+    try { sessionStorage.setItem(SESSION_KEY, me); } catch (e) {}
     tab = "home";
+    render();
+    toast("Welcome back, " + DB.users[me].name);
+  }
+
+  function doRegister(name, user, pin) {
+    name = (name || "").trim();
+    user = (user || "").trim().toLowerCase();
+    if (!/^[a-z0-9_]{3,16}$/.test(user)) {
+      toast("Username: 3–16 letters, numbers or _", true);
+      return;
+    }
+    if (!/^\d{4}$/.test(pin)) {
+      toast("PIN must be exactly 4 digits", true);
+      return;
+    }
+    if (DB.users[user]) {
+      toast("Username already taken", true);
+      return;
+    }
+    DB.users[user] = { name: name || user, pin: pin, balance: 500, tx: [] };
+    setDB(DB);
+    me = user;
+    try { sessionStorage.setItem(SESSION_KEY, me); } catch (e) {}
+    tab = "home";
+    render();
+    toast("Account created! \u20B1500 free credit");
+  }
+
+  function doTopup(amount) {
+    amount = round2(Number(amount));
+    if (!(amount > 0) || amount > MAX_AMOUNT) {
+      toast("Enter a valid amount", true);
+      return;
+    }
+    var u = DB.users[me];
+    u.balance = round2(u.balance + amount);
+    var tx = { type: "topup", amount: amount, ts: Date.now(), ref: newRef(), other: "cash" };
+    u.tx.unshift(tx);
+    setDB(DB);
+    modal = { type: "receipt", tx: tx };
     render();
   }
 
-  function demoToken() {
-    var g = [];
-    for (var i = 0; i < 5; i++) { g.push(String(Math.floor(Math.random() * 10000)).padStart(4, "0")); }
-    return g.join("-");
+  function doSend(to, amount, note) {
+    to = (to || "").trim().toLowerCase();
+    amount = round2(Number(amount));
+    note = (note || "").trim();
+    if (!DB.users[to]) {
+      toast("User not found", true);
+      return;
+    }
+    if (to === me) {
+      toast("Cannot send to yourself", true);
+      return;
+    }
+    if (!(amount > 0) || amount > MAX_AMOUNT) {
+      toast("Enter a valid amount", true);
+      return;
+    }
+    var u = DB.users[me];
+    if (u.balance < amount) {
+      toast("Insufficient balance", true);
+      return;
+    }
+    u.balance = round2(u.balance - amount);
+    DB.users[to].balance = round2(DB.users[to].balance + amount);
+    var ref = newRef();
+    var ts = Date.now();
+    var outTx = { type: "send", amount: amount, ts: ts, ref: ref, other: to, note: note };
+    var inTx  = { type: "received", amount: amount, ts: ts, ref: ref, other: me, note: note };
+    u.tx.unshift(outTx);
+    DB.users[to].tx.unshift(inTx);
+    setDB(DB);
+    modal = { type: "receipt", tx: outTx };
+    render();
   }
 
-  function doBill(f) {
-    var b = BILLERS[biller];
-    if (!b) return;
+  function doBill(amount, ref) {
+    amount = round2(Number(amount));
+    ref = (ref || "").trim();
+    if (!(amount > 0) || amount > MAX_AMOUNT) {
+      toast("Enter a valid amount", true);
+      return;
+    }
+    if (!ref) {
+      toast("Enter the " + (BILLERS[biller].field || "reference"), true);
+      return;
+    }
     var u = DB.users[me];
-    var acct = f.account.value.split(" ").join("");
-    var amt = round2(parseFloat(f.amount.value));
-    if (!/^[0-9]{6,14}$/.test(acct)) { toast(b.field + " must be 6-14 digits", true); return; }
-    if (!(amt >= 10)) { toast("Minimum payment is " + peso(10), true); return; }
-    if (amt > MAX_AMOUNT) { toast("Max per payment is " + peso(MAX_AMOUNT), true); return; }
-    if (amt > u.balance) { toast("Not enough balance", true); return; }
-
-    var tx = { id: newRef(), type: "bill", amount: amt, other: biller, account: acct,
-               note: (biller === "cashpower" ? "Meter " : "Acct ") + acct, ts: Date.now() };
-    if (biller === "cashpower") tx.token = demoToken();
-    u.balance = round2(u.balance - amt);
-    u.saved = u.saved || {};
-    u.saved[biller] = acct;
+    if (u.balance < amount) {
+      toast("Insufficient balance", true);
+      return;
+    }
+    u.balance = round2(u.balance - amount);
+    var token = newRef();
+    var tx = { type: "bill", amount: amount, ts: Date.now(), ref: token, other: biller, note: ref };
     u.tx.unshift(tx);
     setDB(DB);
-    modal = { type: "bill-receipt", tx: tx };
-    biller = null; tab = "home";
+    biller = null;
+    modal = { type: "receipt", tx: tx };
     render();
   }
 
   /* ---------- events ---------- */
   document.addEventListener("click", function (e) {
-    var t;
-    if (e.target.classList.contains("overlay")) { modal = null; render(); return; }
-    if ((t = e.target.closest("[data-auth]"))) { authMode = t.dataset.auth; render(); return; }
-    if ((t = e.target.closest("[data-tab]"))) { tab = t.dataset.tab; biller = null; render(); return; }
-    if ((t = e.target.closest("[data-biller]"))) { biller = t.dataset.biller; render(); return; }
-    if ((t = e.target.closest("[data-biller-back]"))) { biller = null; render(); return; }
-    if ((t = e.target.closest("[data-billamt]"))) { var ba = document.querySelector('#f-bill input[name="amount"]'); if (ba) ba.value = t.dataset.billamt; return; }
-    if ((t = e.target.closest("[data-pick]"))) { var to = document.querySelector('#f-send input[name="to"]'); if (to) to.value = t.dataset.pick; return; }
-    if ((t = e.target.closest("[data-amt]"))) { var a = document.querySelector('#f-topup input[name="amount"]'); if (a) a.value = t.dataset.amt; return; }
-    if ((t = e.target.closest("[data-action]"))) {
-      var act = t.dataset.action;
-      if (act === "logout") { setSession(null); modal = null; render(); }
-      else if (act === "toggle-bal") { hideBal = !hideBal; render(); }
-      else if (act === "open-topup") { modal = { type: "topup" }; render(); }
-      else if (act === "close-modal") { modal = null; render(); }
-      else if (act === "reset") {
-        if (confirm("Reset all demo accounts and transactions?")) {
-          DB = seed(); setDB(DB); setSession(null); authMode = "login"; render(); toast("Demo data reset");
-        }
+    var t = e.target.closest("[data-action],[data-tab],[data-auth],[data-biller],[data-chip]");
+    if (!t) return;
+
+    if (t.dataset.auth) {
+      authMode = t.dataset.auth;
+      renderAuth();
+      return;
+    }
+    if (t.dataset.tab) {
+      tab = t.dataset.tab;
+      biller = null;
+      modal = null;
+      render();
+      return;
+    }
+    if (t.dataset.biller) {
+      biller = t.dataset.biller;
+      render();
+      return;
+    }
+    if (t.dataset.chip) {
+      var inp = document.querySelector("#f-topup input[name=amount]");
+      if (inp) inp.value = t.dataset.chip;
+      return;
+    }
+
+    var act = t.dataset.action;
+    if (act === "logout") {
+      me = null;
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+      authMode = "login";
+      renderAuth();
+      return;
+    }
+    if (act === "reset") {
+      if (confirm("Reset all demo data?")) {
+        DB = seed();
+        setDB(DB);
+        me = null;
+        try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+        authMode = "login";
+        renderAuth();
+        toast("Demo data reset");
       }
+      return;
+    }
+    if (act === "toggle-bal") {
+      hideBal = !hideBal;
+      render();
+      return;
+    }
+    if (act === "open-topup") {
+      modal = { type: "topup" };
+      render();
+      return;
+    }
+    if (act === "close-modal") {
+      modal = null;
+      render();
+      return;
+    }
+    if (act === "back-biller") {
+      biller = null;
+      render();
+      return;
     }
   });
 
   document.addEventListener("submit", function (e) {
     e.preventDefault();
     var f = e.target;
-    if (f.id === "f-login") doLogin(f);
-    else if (f.id === "f-register") doRegister(f);
-    else if (f.id === "f-topup") doTopup(f);
-    else if (f.id === "f-send") doSend(f);
-    else if (f.id === "f-bill") doBill(f);
+    if (f.id === "f-login") {
+      doLogin(f.user.value, f.pin.value);
+    } else if (f.id === "f-register") {
+      doRegister(f.name.value, f.user.value, f.pin.value);
+    } else if (f.id === "f-topup") {
+      doTopup(f.amount.value);
+    } else if (f.id === "f-send") {
+      doSend(f.to.value, f.amount.value, f.note.value);
+    } else if (f.id === "f-bill") {
+      doBill(f.amount.value, f.ref.value);
+    }
   });
 
+  /* ---------- start ---------- */
   render();
+
+  // Register service worker for PWA
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js").catch(function (err) {
+        console.log("SW registration failed:", err);
+      });
+    });
+  }
 })();
 </script>
 </body>
