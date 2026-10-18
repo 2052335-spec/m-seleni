@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M-seleni</title>
+<style>
+:root{
+  --navy:#0b1f33; --ink:#12263a; --muted:#6b7c8d; --line:#e6edf3;
+  --brand:#0ea5a4; --brand-dark:#0b7a8a; --accent:#f5a524;
+  --ok:#12a150; --bad:#d64545; --bg:#f3f7fa; --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--navy);color:var(--ink);display:flex;justify-content:center}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+#app{width:100%;max-width:430px;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column}
+@media(min-width:600px){
+  body{align-items:center;padding:24px 0}
+  #app{min-height:0;height:min(860px,calc(100vh - 48px));border-radius:28px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+}
+.banner{background:var(--accent);color:#3b2600;font-size:12px;font-weight:600;text-align:center;padding:6px 10px}
+
+/* auth */
+.auth{flex:1;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--navy) 0%,#0f4c5c 100%);color:#fff;overflow-y:auto}
+.auth-top{padding:48px 28px 24px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;font-size:30px;font-weight:800;letter-spacing:-.5px}
+.logo .m{width:46px;height:46px;border-radius:14px;background:var(--brand);display:grid;place-items:center;font-size:26px;color:#fff;box-shadow:0 6px 16px rgba(14,165,164,.45)}
+.tag{margin-top:8px;font-size:14px;opacity:.8}
+.auth-card{background:var(--card);color:var(--ink);border-radius:24px 24px 0 0;padding:22px 24px 28px;margin-top:auto;min-height:340px}
+.tabs{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;padding:9px;border-radius:9px;font-weight:600;color:var(--muted)}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+input:focus{border-color:var(--brand)}
+.btn{width:100%;margin-top:18px;padding:13px;border-radius:12px;background:var(--brand);color:#fff;font-weight:700}
+.btn:active{background:var(--brand-dark)}
+.btn.ghost{background:var(--bg);color:var(--ink)}
+.hint{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+.hint b{color:var(--ink)}
+.linkbtn{color:var(--brand-dark);font-weight:600;font-size:12px;text-decoration:underline}
+
+/* app */
+.top{background:linear-gradient(160deg,var(--navy),#0f4c5c);color:#fff;padding:18px 20px 70px}
+.top-row{display:flex;justify-content:space-between;align-items:center}
+.hi{font-size:13px;opacity:.8}
+.name{font-size:18px;font-weight:700}
+.logout{font-size:12px;padding:7px 12px;border-radius:20px;background:rgba(255,255,255,.14);color:#fff}
+.main{flex:1;overflow-y:auto;padding:0 16px 90px;margin-top:-52px}
+.top.slim{padding-bottom:22px}
+.main.flat{margin-top:0;padding-top:14px}
+.bal{background:var(--card);border-radius:20px;padding:18px 20px;box-shadow:0 8px 24px rgba(11,31,51,.14)}
+.bal small{color:var(--muted);font-size:12px;font-weight:600}
+.bal .amt{font-size:34px;font-weight:800;letter-spacing:-1px;margin:4px 0 2px;display:flex;align-items:center;gap:10px}
+.eye{font-size:16px;opacity:.6}
+.acct{font-size:12px;color:var(--muted)}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.act{background:var(--card);border-radius:16px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(11,31,51,.06)}
+.act .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:#e3f6f6}
+.act.send .ic{background:#fff1d6}
+.act.bill .ic{background:#e6ecff}
+h3{font-size:15px;margin:6px 2px 10px;display:flex;justify-content:space-between;align-items:center}
+.list{background:var(--card);border-radius:16px;padding:4px 14px;box-shadow:0 2px 8px rgba(11,31,51,.06)}
+.tx{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:0}
+.tx .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex:none}
+.ic.in{background:#e1f5ea}.ic.out{background:#fde7e7}.ic.cash{background:#e3f6f6}.ic.bill{background:#fff1d6}
+.tx .t{flex:1;min-width:0}
+.tx .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .t span{font-size:12px;color:var(--muted)}
+.tx .a{font-weight:700;font-size:14px;white-space:nowrap}
+.a.pos{color:var(--ok)}.a.neg{color:var(--bad)}
+.empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:13px}
+.panel{background:var(--card);border-radius:18px;padding:6px 18px 20px;box-shadow:0 2px 8px rgba(11,31,51,.06);margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{padding:7px 12px;border-radius:20px;background:var(--bg);font-size:13px;font-weight:600;border:1.5px solid var(--line)}
+.chip:active{border-color:var(--brand)}
+.title{font-size:20px;font-weight:800;margin:6px 2px 8px}
+.biller{width:100%;display:flex;align-items:center;gap:14px;text-align:left;background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(11,31,51,.06)}
+.biller:active{background:#f0f6f9}
+.biller .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:#fff1d6;flex:none}
+.biller .bt{flex:1;min-width:0}
+.biller .bt b{display:block;font-size:16px}
+.biller .bt span{font-size:12px;color:var(--muted)}
+.biller .go{font-size:24px;color:var(--muted)}
+.back{font-size:13px;font-weight:600;color:var(--brand-dark);padding:6px 2px}
+.paying{font-size:13px;color:var(--muted);padding:12px 0 2px}
+.paying b{color:var(--ink)}
+.token{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.5px}
+.fine{font-size:12px;color:var(--muted);margin-top:10px}
+.nav{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 8px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted);padding:6px}
+.nav button .e{font-size:20px}
+.nav button.on{color:var(--brand-dark)}
+
+/* modal + toast */
+.overlay{position:absolute;inset:0;background:rgba(11,31,51,.55);display:flex;align-items:flex-end;z-index:10}
+.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:22px 22px 28px;max-height:92%;overflow-y:auto}
+.sheet h2{font-size:18px;margin-bottom:4px}
+.sheet p.s{font-size:13px;color:var(--muted)}
+.receipt{text-align:center}
+.check{width:64px;height:64px;border-radius:50%;background:#e1f5ea;color:var(--ok);display:grid;place-items:center;font-size:32px;margin:6px auto 10px}
+.receipt .big{font-size:30px;font-weight:800;margin:6px 0}
+.rows{margin-top:14px;text-align:left;border-top:1px dashed var(--line)}
+.rows div{display:flex;justify-content:space-between;padding:9px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+.rows span{color:var(--muted)}
+.toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;z-index:20;max-width:88%;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.toast.err{background:var(--bad)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* M-seleni, server version.
+     This page only shows things. Every balance, payment and login is checked
+     by api.php and stored in PostgreSQL. Nothing important lives in the browser. */
+
+  var API = "api.php";
+  var ICONS = { bolt: "💡", drop: "💧" };
+  var DEFAULT_ICON = "🧾";
+  var MAX_AMOUNT = 50000;
+
+  function $(s) { return document.querySelector(s); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function peso(n) {
+    return "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+  function iconFor(b) { return (b && ICONS[b.icon]) || DEFAULT_ICON; }
+
+  /* ---------- state ---------- */
+  var S = null;            // what the server last told us: {user, tx, billers, saved, recent}
+  var screen = "loading";  // loading | offline | app
+  var busy = false;
+  var tab = "home";
+  var authMode = "login";
+  var hideBal = false;
+  var biller = null;       // which biller form is open on the Bills tab
+  var modal = null;        // {type:'topup'} | {type:'receipt', tx} | {type:'bill-receipt', tx}
+  var toastTimer = null;
+
+  function toast(msg, isErr) {
+    var old = $(".toast");
+    if (old) old.remove();
+    var el = document.createElement("div");
+    el.className = "toast" + (isErr ? " err" : "");
+    el.textContent = msg;
+    $("#app").appendChild(el);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.remove(); }, 2800);
+  }
+
+  /* ---------- talking to the server ---------- */
+  function api(action, body) {
+    var opts = { credentials: "same-origin", headers: {} };
+    if (body !== undefined) {
+      opts.method = "POST";
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(API + "?action=" + action, opts).then(function (r) {
+      return r.json().then(
+        function (d) { return { status: r.status, data: d }; },
+        function () { throw new Error("not-json"); }
+      );
+    });
+  }
+
+  function setBusy(b) {
+    busy = b;
+    var btns = document.querySelectorAll('button[type="submit"]');
+    for (var i = 0; i < btns.length; i++) { btns[i].disabled = b; }
+  }
+
+  // Send one action to the server, then run onOk(data) if it worked.
+  function act(action, body, onOk) {
+    if (busy) return;
+    setBusy(true);
+    api(action, body).then(function (res) {
+      setBusy(false);
+      var d = res.data || {};
+      if (d.error) {
+        if (res.status === 401 && S && S.user && action !== "login") {   // session ran out
+          S = { user: null }; modal = null; render();
+        }
+        toast(d.error, true);
+        return;
+      }
+      if (d.state) S = d.state;
+      onOk(d);
+    }).catch(function () {
+      setBusy(false);
+      toast("Can't reach the M-seleni server. Check your connection.", true);
+    });
+  }
+
+  function loadState() {
+    screen = "loading"; render();
+    api("state").then(function (res) {
+      if (res.data && Object.prototype.hasOwnProperty.call(res.data, "user")) {
+        S = res.data; screen = "app";
+      } else {
+        screen = "offline";
+      }
+      render();
+    }).catch(function () { screen = "offline"; render(); });
+  }
+
+  /* ---------- views ---------- */
+  var BANNER = '<div class="banner">DEMO ONLY &mdash; fake money, no real payments</div>';
+  var LOGO = '<div class="auth-top"><div class="logo"><span class="m">M</span><span>-seleni</span></div>' +
+             '<div class="tag">Your pocket e-wallet</div></div>';
+
+  function renderMessage(title, text, withRetry) {
+    $("#app").innerHTML = BANNER + '<div class="auth">' + LOGO +
+      '<div class="auth-card"><h3 style="justify-content:center;margin-top:20px">' + esc(title) + '</h3>' +
+      '<p class="hint">' + text + '</p>' +
+      (withRetry ? '<button class="btn" data-action="retry">Try again</button>' : "") +
+      '</div></div>';
+  }
+
+  function renderAuth() {
+    var isReg = authMode === "register";
+    $("#app").innerHTML = BANNER + '<div class="auth">' + LOGO +
+        '<div class="auth-card">' +
+          '<div class="tabs">' +
+            '<button data-auth="login" class="' + (!isReg ? "on" : "") + '">Log in</button>' +
+            '<button data-auth="register" class="' + (isReg ? "on" : "") + '">Register</button>' +
+          '</div>' +
+          '<form id="' + (isReg ? "f-register" : "f-login") + '" autocomplete="off">' +
+            (isReg ? '<label>Full name</label><input name="name" maxlength="30" required placeholder="e.g. Ana Reyes">' : "") +
+            '<label>Username</label><input name="user" maxlength="16" required placeholder="letters, numbers, underscore" autocapitalize="none">' +
+            '<label>4-digit PIN</label><input name="pin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required placeholder="&bull;&bull;&bull;&bull;">' +
+            '<button class="btn" type="submit">' + (isReg ? "Create account (₱500 free)" : "Log in") + '</button>' +
+          '</form>' +
+          '<div class="hint">Try <b>demo</b> / PIN <b>1234</b>, or <b>maria</b> / <b>1111</b></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function txRow(t) {
+    var bi = S.billers[t.other];
+    var icon, cls, title, sign;
+    if (t.type === "bill") { icon = iconFor(bi); cls = "bill"; title = (bi ? bi.label + " · " + bi.company : t.other); sign = "-"; }
+    else if (t.type === "topup") { icon = "⬇"; cls = "cash"; title = "Cash in"; sign = "+"; }
+    else if (t.type === "received") { icon = "↙"; cls = "in"; title = "From " + t.otherName; sign = "+"; }
+    else { icon = "↗"; cls = "out"; title = "To " + t.otherName; sign = "-"; }
+    var extra = t.note || (t.type === "bill" ? (t.other === "cashpower" ? "Meter " : "Acct ") + t.account : "");
+    var sub = fmtDate(t.ts) + (extra ? " · " + extra : "");
+    return '<div class="tx"><div class="ic ' + cls + '">' + icon + '</div>' +
+      '<div class="t"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></div>' +
+      '<div class="a ' + (sign === "+" ? "pos" : "neg") + '">' + sign + peso(t.amount) + '</div></div>';
+  }
+
+  function txList(arr) {
+    if (!arr.length) return '<div class="list"><div class="empty">No transactions yet.</div></div>';
+    return '<div class="list">' + arr.map(txRow).join("") + '</div>';
+  }
+
+  function homeView() {
+    var u = S.user;
+    return '' +
+      '<div class="bal"><small>Available balance</small>' +
+        '<div class="amt"><span>' + (hideBal ? "₱ ••••••" : peso(u.balance)) + '</span>' +
+        '<button class="eye" data-action="toggle-bal" aria-label="Show or hide balance">' + (hideBal ? "🙈" : "👁") + '</button></div>' +
+        '<div class="acct">@' + esc(u.username) + ' &middot; M-seleni account</div></div>' +
+      '<div class="actions">' +
+        '<button class="act" data-action="open-topup"><span class="ic">💵</span>Top up</button>' +
+        '<button class="act send" data-tab="send"><span class="ic">✈️</span>Send</button>' +
+        '<button class="act bill" data-tab="bills"><span class="ic">🧾</span>Pay bills</button>' +
+      '</div>' +
+      '<h3>Recent activity <button class="linkbtn" data-tab="activity">See all</button></h3>' +
+      txList(S.tx.slice(0, 4));
+  }
+
+  function sendView() {
+    var chips = S.recent.map(function (k) {
+      return '<button type="button" class="chip" data-pick="' + esc(k) + '">@' + esc(k) + '</button>';
+    }).join("");
+    return '' +
+      '<div class="title">Send money</div>' +
+      '<div class="panel"><form id="f-send" autocomplete="off">' +
+        '<label>Send to (username)</label>' +
+        '<input name="to" maxlength="17" required placeholder="e.g. maria" autocapitalize="none">' +
+        (chips ? '<div class="chips">' + chips + '</div>' : "") +
+        '<label>Amount (₱)</label>' +
+        '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
+        '<label>Note (optional)</label>' +
+        '<input name="note" maxlength="40" placeholder="e.g. lunch">' +
+        '<button class="btn" type="submit">Send</button>' +
+      '</form></div>';
+  }
+
+  function billsView() {
+    if (biller && S.billers[biller]) {
+      var b = S.billers[biller];
+      var saved = (S.saved && S.saved[biller]) || "";
+      return '<button class="back" data-biller-back="1">← Back</button>' +
+        '<div class="title">' + iconFor(b) + ' ' + esc(b.label) + '</div>' +
+        '<div class="panel"><div class="paying">Paying <b>' + esc(b.company) + '</b> &middot; ' + esc(b.note) + '</div>' +
+        '<form id="f-bill" autocomplete="off">' +
+          '<label>' + esc(b.field) + '</label>' +
+          '<input name="account" inputmode="numeric" maxlength="14" required placeholder="' + esc(b.hint) + '" value="' + esc(saved) + '">' +
+          '<label>Amount (₱)</label>' +
+          '<input name="amount" type="number" inputmode="decimal" min="10" step="0.01" required placeholder="0.00">' +
+          '<div class="chips">' +
+            [50, 100, 200, 500].map(function (n) { return '<button type="button" class="chip" data-billamt="' + n + '">' + peso(n).replace(".00", "") + '</button>'; }).join("") +
+          '</div>' +
+          '<button class="btn" type="submit">Pay ' + esc(b.company) + '</button>' +
+        '</form></div>';
+    }
+    var cards = Object.keys(S.billers).map(function (k) {
+      var b = S.billers[k];
+      return '<button class="biller" data-biller="' + esc(k) + '"><span class="ic">' + iconFor(b) + '</span>' +
+        '<span class="bt"><b>' + esc(b.label) + '</b><span>' + esc(b.company) + ' &middot; ' + esc(b.note) + '</span></span>' +
+        '<span class="go">›</span></button>';
+    }).join("");
+    var recent = S.tx.filter(function (t) { return t.type === "bill"; }).slice(0, 4);
+    return '<div class="title">Pay bills</div>' + cards + '<h3>Recent bill payments</h3>' + txList(recent);
+  }
+
+  function activityView() {
+    return '<div class="title">Activity</div>' + txList(S.tx);
+  }
+
+  function modalHTML() {
+    if (!modal) return "";
+    if (modal.type === "topup") {
+      return '<div class="overlay"><div class="sheet">' +
+        '<h2>Top up</h2><p class="s">Add fake cash to your wallet (max ' + peso(MAX_AMOUNT) + ').</p>' +
+        '<form id="f-topup" autocomplete="off">' +
+          '<label>Amount (₱)</label>' +
+          '<input name="amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00">' +
+          '<div class="chips">' +
+            [100, 500, 1000, 5000].map(function (n) { return '<button type="button" class="chip" data-amt="' + n + '">' + peso(n).replace(".00", "") + '</button>'; }).join("") +
+          '</div>' +
+          '<button class="btn" type="submit">Add money</button>' +
+          '<button class="btn ghost" type="button" data-action="close-modal">Cancel</button>' +
+        '</form></div></div>';
+    }
+    if (modal.type === "receipt") {
+      var t = modal.tx;
+      return '<div class="overlay"><div class="sheet receipt">' +
+        '<div class="check">✓</div><h2>Money sent!</h2>' +
+        '<div class="big">' + peso(t.amount) + '</div>' +
+        '<div class="rows">' +
+          '<div><span>To</span><b>' + esc(t.otherName) + ' (@' + esc(t.other) + ')</b></div>' +
+          (t.note ? '<div><span>Note</span><b>' + esc(t.note) + '</b></div>' : "") +
+          '<div><span>Date</span><b>' + esc(fmtDate(t.ts)) + '</b></div>' +
+          '<div><span>Reference no.</span><b>' + esc(t.id) + '</b></div>' +
+        '</div>' +
+        '<button class="btn" data-action="close-modal">Done</button>' +
+      '</div></div>';
+    }
+    if (modal.type === "bill-receipt") {
+      var bt = modal.tx;
+      var bb = S.billers[bt.other] || { label: bt.other, company: bt.other, field: "Account" };
+      return '<div class="overlay"><div class="sheet receipt">' +
+        '<div class="check">✓</div><h2>Bill paid!</h2>' +
+        '<div class="big">' + peso(bt.amount) + '</div>' +
+        '<div class="rows">' +
+          '<div><span>Biller</span><b>' + esc(bb.company) + '</b></div>' +
+          '<div><span>Service</span><b>' + esc(bb.label) + '</b></div>' +
+          '<div><span>' + esc(bb.field) + '</span><b>' + esc(bt.account) + '</b></div>' +
+          '<div><span>Date</span><b>' + esc(fmtDate(bt.ts)) + '</b></div>' +
+          '<div><span>Reference no.</span><b>' + esc(bt.id) + '</b></div>' +
+          (bt.token ? '<div><span>Demo token</span><b class="token">' + esc(bt.token) + '</b></div>' : "") +
+        '</div>' +
+        (bt.token ? '<p class="fine">Demo token only. It does not load any real meter.</p>' : "") +
+        '<button class="btn" data-action="close-modal">Done</button>' +
+      '</div></div>';
+    }
+    return "";
+  }
+
+  function renderApp() {
+    var u = S.user;
+    var body = tab === "send" ? sendView() : tab === "bills" ? billsView() : tab === "activity" ? activityView() : homeView();
+    function nav(id, emoji, label) {
+      return '<button data-tab="' + id + '" class="' + (tab === id ? "on" : "") + '"><span class="e">' + emoji + '</span>' + label + '</button>';
+    }
+    $("#app").innerHTML = BANNER +
+      '<div class="top' + (tab === "home" ? "" : " slim") + '"><div class="top-row"><div><div class="hi">Welcome back,</div><div class="name">' + esc(u.name) + '</div></div>' +
+        '<button class="logout" data-action="logout">Log out</button></div></div>' +
+      '<div class="main' + (tab === "home" ? "" : " flat") + '">' + body + '</div>' +
+      '<div class="nav">' + nav("home", "🏠", "Home") + nav("send", "✈️", "Send") + nav("bills", "🧾", "Bills") + nav("activity", "📋", "Activity") + '</div>' +
+      modalHTML();
+  }
+
+  function render() {
+    if (screen === "loading") { renderMessage("Loading…", "Connecting to the M-seleni server.", false); return; }
+    if (screen === "offline") {
+      renderMessage("Can't reach the server",
+        "This page needs the M-seleni server (PHP and PostgreSQL). It cannot run from GitHub Pages or by opening the file directly.",
+        true);
+      return;
+    }
+    if (!S || !S.user) { renderAuth(); return; }
+    renderApp();
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener("click", function (e) {
+    var t;
+    if (e.target.classList.contains("overlay")) { modal = null; render(); return; }
+    if ((t = e.target.closest("[data-auth]"))) { authMode = t.dataset.auth; render(); return; }
+    if ((t = e.target.closest("[data-tab]"))) { tab = t.dataset.tab; biller = null; render(); return; }
+    if ((t = e.target.closest("[data-biller]"))) { biller = t.dataset.biller; render(); return; }
+    if ((t = e.target.closest("[data-biller-back]"))) { biller = null; render(); return; }
+    if ((t = e.target.closest("[data-billamt]"))) { var ba = $('#f-bill input[name="amount"]'); if (ba) ba.value = t.dataset.billamt; return; }
+    if ((t = e.target.closest("[data-pick]"))) { var to = $('#f-send input[name="to"]'); if (to) to.value = t.dataset.pick; return; }
+    if ((t = e.target.closest("[data-amt]"))) { var a = $('#f-topup input[name="amount"]'); if (a) a.value = t.dataset.amt; return; }
+    if ((t = e.target.closest("[data-action]"))) {
+      var action = t.dataset.action;
+      if (action === "logout") {
+        act("logout", {}, function () { S = { user: null }; modal = null; tab = "home"; biller = null; render(); });
+      }
+      else if (action === "toggle-bal") { hideBal = !hideBal; render(); }
+      else if (action === "open-topup") { modal = { type: "topup" }; render(); }
+      else if (action === "close-modal") { modal = null; render(); }
+      else if (action === "retry") { loadState(); }
+    }
+  });
+
+  document.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = e.target;
+    if (f.id === "f-login") {
+      act("login", { username: f.user.value, pin: f.pin.value }, function () {
+        tab = "home"; biller = null; modal = null; render();
+      });
+    } else if (f.id === "f-register") {
+      act("register", { name: f.name.value, username: f.user.value, pin: f.pin.value }, function () {
+        tab = "home"; biller = null; modal = null; render();
+        toast("Welcome to M-seleni! ₱500 added");
+      });
+    } else if (f.id === "f-topup") {
+      act("topup", { amount: f.amount.value }, function (d) {
+        modal = null; render();
+        toast(peso(d.receipt.amount) + " added to your wallet");
+      });
+    } else if (f.id === "f-send") {
+      act("transfer", { to: f.to.value, amount: f.amount.value, note: f.note.value }, function (d) {
+        modal = { type: "receipt", tx: d.receipt }; tab = "home"; render();
+      });
+    } else if (f.id === "f-bill") {
+      act("bill", { biller: biller, account: f.account.value, amount: f.amount.value }, function (d) {
+        modal = { type: "bill-receipt", tx: d.receipt }; biller = null; tab = "home"; render();
+      });
+    }
+  });
+
+  loadState();
+})();
+</script>
+</body>
+</html>
